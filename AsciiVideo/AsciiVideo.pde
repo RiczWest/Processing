@@ -1,6 +1,7 @@
 /**
  * ASCII Video
  * by Ben Fry. 
+ * modified by Richard West. Added 'b' & 'B' Brightness control
  * 
  * Text characters have been used to represent images since the earliest computers.
  * This sketch is a simple homage that re-interprets live video as ASCII text.
@@ -23,7 +24,7 @@ char[] chars;
 
 PFont font;
 float fontSize = 1.5;
-
+float brightn = 1.0;
 
 public void setup() {
   size(640, 480, P2D);
@@ -82,15 +83,15 @@ void draw() {
     for (int x = 0; x < video.width; x++) {
       int pixelColor = video.pixels[index];
       // Faster method of calculating r, g, b than red(), green(), blue() 
-      int r = (pixelColor >> 16) & 0xff;
-      int g = (pixelColor >> 8) & 0xff;
+      int r = pixelColor >> 16 & 0xff;
+      int g = pixelColor >> 8 & 0xff;
       int b = pixelColor & 0xff;
 
       // Another option would be to properly calculate brightness as luminance:
       // luminance = 0.3*red + 0.59*green + 0.11*blue
       // Or you could instead red + green + blue, and make the the values[] array
       // 256*3 elements long instead of just 256.
-      int pixelBright = max(r, g, b);
+      int pixelBright = max(int(0.3*(float)r*brightn), int(0.56*(float)g*brightn), int(0.11*(float)b*brightn));
 
       // The 0.1 value is used to damp the changes so that letters flicker less
       float diff = pixelBright - bright[index];
@@ -98,7 +99,7 @@ void draw() {
 
       fill(pixelColor);
       int num = int(bright[index]);
-      text(letters[num], 0, 0);
+      text(letters[(num>letters.length-1)?letters.length-1:num], 0, 0);
       
       // Move to the next pixel
       index++;
@@ -123,6 +124,7 @@ void draw() {
  * 'c' toggles the cheat screen that shows the original image in the corner
  * 'g' grabs an image and saves the frame to a tiff image
  * 'f' and 'F' increase and decrease the font size
+ * 'b' and 'B' increase and decrease the brightness
  */
 public void keyPressed() {
   switch (key) {
@@ -130,5 +132,7 @@ public void keyPressed() {
     case 'c': cheatScreen = !cheatScreen; break;
     case 'f': fontSize *= 1.1; break;
     case 'F': fontSize *= 0.9; break;
+    case 'b': brightn += 0.1; break;
+    case 'B': if (brightn>0) brightn -= 0.1; break;
   }
 }
